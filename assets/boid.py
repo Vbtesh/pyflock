@@ -26,7 +26,7 @@ class Boid(pygame.sprite.Sprite):
         self.boundaries = [self.rect.midtop, self.rect.bottomleft, self.rect.bottomright]
 
         self.velocity = vector
-        self.view = self.vision()
+        self.vision()
         self.radius = point_distance(self.rect.center, self.ahead2)
 
 
@@ -35,7 +35,7 @@ class Boid(pygame.sprite.Sprite):
         pygame.draw.polygon(surface, self.color, self.boundaries)
         #for ray in self.view:
         #    pygame.draw.line(surface, self.color, self.rect.center, ray[0], 1)
-        
+
         #pygame.draw.circle(surface, self.color, self.rect.center, 100, 1)
         #pygame.draw.line(surface, self.color, self.rect.center, self.ahead, 1)
 
@@ -49,17 +49,6 @@ class Boid(pygame.sprite.Sprite):
     def calcnewbounds(self, rect):
         # Tip of the boid
         head = rect.center
-        
-        # Generate two vectors for each points
-        #if self.velocity[1] > 160:
-        #    left_angle = self.velocity[1] - 160
-        #else:
-        #    left_angle = self.velocity[1] + 160
-        #
-        #if self.velocity[1] > 200:
-        #    right_angle = self.velocity[1] - 200
-        #else:
-        #    right_angle = self.velocity[1] + 200
 
         left_angle = self.velocity[1] + 160
         right_angle = self.velocity[1] + 200
@@ -86,7 +75,7 @@ class Boid(pygame.sprite.Sprite):
         newpos.centerx, newpos.centery, newpos.center = x, y, (x, y)
 
         self.rect = newpos
-        self.view = self.vision()
+        self.vision()
         #self.boundaries = [self.rect.midtop, self.rect.bottomright, self.rect.bottomleft]
         self.boundaries = self.calcnewbounds(self.rect)
         #self.boundaries = [self.calcnewbounds(self.rect, offset)[0], self.rect.bottomright, self.rect.bottomleft]
@@ -100,47 +89,14 @@ class Boid(pygame.sprite.Sprite):
         return rect.move(offset[0], offset[1])
 
 
-    def vision(self, view_angle=141):
+    def vision(self):
 
         velocity = Vector2()
         velocity.from_polar(self.velocity)
-        self.ahead = (self.rect.centerx + velocity[0]*view_dist_coef(velocity), self.rect.centery + velocity[1]*view_dist_coef(velocity))
-        self.ahead2 = (self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.5, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.5))
+        dist_coef = view_dist_coef(velocity, 100)
 
-        left_vision = []
-        for angle in range(0, view_angle, 10):
-            velocity = Vector2()
-            velocity.from_polar((self.velocity[0], self.velocity[1] + angle))
-            
-            ahead = []
-            ahead.append((self.rect.centerx + velocity[0]*view_dist_coef(velocity), self.rect.centery + velocity[1]*view_dist_coef(velocity)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.80, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.80)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.60, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.60)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.40, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.40)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.20, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.20)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.10, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.10)))
-
-            left_vision.append(ahead)
-
-        right_vision = []
-        for angle in range(0, view_angle, 10):
-            velocity = Vector2()
-            velocity.from_polar((self.velocity[0], self.velocity[1] - angle))
-
-            ahead = []
-            ahead.append((self.rect.centerx + velocity[0]*view_dist_coef(velocity), self.rect.centery + velocity[1]*view_dist_coef(velocity)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.80, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.80)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.60, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.60)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.40, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.40)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.20, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.20)))
-            ahead.append((self.rect.centerx + (velocity[0]*view_dist_coef(velocity))*0.10, self.rect.centery + (velocity[1]*view_dist_coef(velocity)*0.10)))
-
-            right_vision.append(ahead)
-
-        vision = [view for view in reversed(left_vision)]
-        vision += right_vision[1:]
-
-        return vision
+        self.ahead = (self.rect.centerx + velocity[0]*dist_coef, self.rect.centery + velocity[1]*dist_coef)
+        self.ahead2 = (self.rect.centerx + velocity[0]*dist_coef*0.5, self.rect.centery + velocity[1]*dist_coef*0.5) # Is always half of ahead.
 
 
     def adjust_velocity(self, new_direction):
@@ -150,31 +106,12 @@ class Boid(pygame.sprite.Sprite):
         self.velocity = Vector2(velocity[0] + adjust[0], velocity[1] + adjust[1]).as_polar()
 
 
-    def check_collision(self, boid, surface):
-
-        #if pygame.sprite.collide_circle(self, boid):
-        #    pygame.draw.line(surface, (255,0,0), self.rect.center, boid.rect.center, 1)
-        #    avoidance = ()
+    def avoid_collision(self, boid):
         
-        intercept = find_intercept(self.rect.center, self.ahead, boid.rect.center, boid.ahead)
-        if intercept:
-            crash_distance = point_distance(self.rect.center, intercept)
-            if crash_distance < 50:
-                avoidance = (self.ahead2[0] - intercept[0], self.ahead2[1] - intercept[1])
-                self.adjust_velocity(avoidance)
+        optimal_distance = 30
+        if pygame.sprite.collide_circle(self, boid):
 
 
-    def observe(self, flock):
-        
-        in_view = []
-        close_flock = [boid for boid in flock if pygame.sprite.collide_circle(self, boid)]
-        for boid in close_flock:
-            for ray in self.view:
-                size_ray = ray[0]
-                for close, point in zip(range(len(ray), ray)):
-                    if boid.rect.collidepoint(point):
-                        size_ray = ray[close]
-                in_view.append(size_ray)
 
 
             

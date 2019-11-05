@@ -22,8 +22,7 @@ def doughnut(x, y, dimensions):
     return (new_x, new_y)
 
 
-def view_dist_coef(velocity):
-    max_dist = 100
+def view_dist_coef(velocity, max_dist=100):
     dist = sqrt(velocity[0]**2 + velocity[1]**2)
     return max_dist / dist
 
