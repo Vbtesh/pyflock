@@ -28,7 +28,7 @@ boid_colors = [(224,238,238), (127,255,212), (152,245,255)]
 
 
 # Flock of boids initialisation
-boid_number = 70
+boid_number = 130
 boid_scale = 0.5
 max_speed = 6
 #flock = [Boid(boid_scale, boid_colors[randint(0, len(boid_colors)-1)], boid_vector, dimensions) for i in range(boid_number)]

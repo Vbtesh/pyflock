@@ -74,9 +74,9 @@ class Boid(pygame.sprite.Sprite):
         seek, avoid, align = self.seek_avoid_align(flock)
 
         # Apply weights
-        avoid = avoid * 1.2
-        seek = seek * 0.2
-        align = align * 1
+        avoid = avoid * 1
+        seek = seek * 0.3
+        align = align * 0.8
         
         acceleration = avoid + seek + align
         
@@ -219,12 +219,12 @@ class Boid(pygame.sprite.Sprite):
         flock_pos = Vector2()
 
         # Avoid variables
-        avoid_distance = 50
+        avoid_distance = 25
         avoid_steers = Vector2()
         avoid_count = 0
 
         # Align variables
-        align_distance = 100
+        align_distance = 50
         align_steers = Vector2()
         align_count = 0
         
@@ -236,16 +236,16 @@ class Boid(pygame.sprite.Sprite):
 
             # Avoid: avoidance steering for current boid
             if distance > 0 and distance < avoid_distance:
-                avoid_steering = (current_pos - boid.pos) 
-                avoid_steering = avoid_steering.normalize() / distance
+                avoid_steering = (current_pos - boid.pos) / distance
+                avoid_steering = avoid_steering.normalize() 
 
                 avoid_steers += avoid_steering
                 avoid_count += 1
             
             # Align: alignment steering for current boid
             elif distance > 0 and distance < align_distance:
-                align_steering = boid.velocity
-                align_steering = align_steering.normalize() / distance
+                align_steering = boid.velocity / distance
+                align_steering = align_steering.normalize() 
 
                 align_steers += align_steering
                 align_count += 1
