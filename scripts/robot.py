@@ -5,7 +5,7 @@ import pygame
 if __name__ == "__main__":
     from utility import doughnut, view_dist_coef, find_intercept, point_distance, slope_intercept
 else:
-    from assets.utility import doughnut, view_dist_coef, find_intercept, point_distance, slope_intercept
+    from scripts.utility import doughnut, view_dist_coef, find_intercept, point_distance, slope_intercept
 
 
 class Boid(pygame.sprite.Sprite):

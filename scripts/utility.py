@@ -46,7 +46,11 @@ def find_intercept(p1, p2, p3, p4):
         return None
 
 
-def point_distance(p1, p2):
+def point_distance(p1, p2, givexy=False):
+
+    if givexy:
+        return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2), p1[0] - p2[0], p1[1] - p2[1]
+    
     return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
 # Basic colors 
