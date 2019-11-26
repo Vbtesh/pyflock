@@ -1,6 +1,9 @@
 from math import sqrt
 
 
+def click_to_spawn(pos):
+    pass
+
 def doughnut(x, y, dimensions):
     width = dimensions[0]
     height = dimensions[1]

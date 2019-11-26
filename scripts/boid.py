@@ -3,7 +3,7 @@ from pygame.math import Vector2
 import pygame
 import numpy as np
 
-if __name__ == "__main__":
+if __name__ == "__main__" or __name__ == "boid":
     from utility import doughnut, view_dist_coef, find_intercept, point_distance, slope_intercept
 else:
     from scripts.utility import doughnut, view_dist_coef, find_intercept, point_distance, slope_intercept
@@ -11,9 +11,12 @@ else:
 
 class Boid(pygame.sprite.Sprite):
 
-    def __init__(self, scale, max_speed, color, vector, dimensions):
+    def __init__(self, scale, max_speed, color, vector, dimensions, pos=None):
         pygame.sprite.Sprite.__init__(self)
-        self.pos = Vector2(randint(1, dimensions[0]), randint(1, dimensions[1]))
+        if not pos:
+            self.pos = Vector2(randint(1, dimensions[0]), randint(1, dimensions[1]))
+        else:
+            self.pos = Vector2(pos)
         #self.init_pos = (dimensions[0]/2, dimensions[1]/2)
         self.surface_dim = dimensions
 
@@ -65,7 +68,7 @@ class Boid(pygame.sprite.Sprite):
         return [head, left_wing, right_wing]
 
     
-    def accelerate(self, flock):
+    def accelerate(self, flock, predators=None):
 
         # Get steering forces
         #seek2 = self.seek(flock, True, True)
@@ -73,12 +76,16 @@ class Boid(pygame.sprite.Sprite):
         #align2 = self.align(flock, True)
         seek, avoid, align = self.seek_avoid_align(flock)
 
+        # Fear if predator
+        fear = self.escape(predators)
+
         # Apply weights
         avoid = avoid * 1
         seek = seek * 0.3
         align = align * 0.8
+        fear = fear * 2
         
-        acceleration = avoid + seek + align
+        acceleration = avoid + seek + align + fear
         
         if acceleration.magnitude() > 0:
             self.velocity = self.velocity + acceleration
@@ -277,6 +284,44 @@ class Boid(pygame.sprite.Sprite):
 
         return seek_force, avoid_force, align_force
 
+
+    def escape(self, predators=None):
+
+        if not predators:
+            return Vector2()
+        
+        # Boid variables
+        current_pos = self.pos
+        velocity = self.velocity
+
+        # escape variables
+        escape_distance = 75
+        escape_steers = Vector2()
+        escape_count = 0
+        
+        for predator in predators:
+            distance = point_distance(predator.pos, current_pos)
+
+            # escape: escape steering for current boid
+            if distance > 0 and distance < escape_distance:
+                escape_steering = (current_pos - predator.pos) / distance
+                escape_steering = escape_steering.normalize() 
+
+                escape_steers += escape_steering
+                escape_count += 1
+
+
+        if escape_steers.magnitude() != 0:
+            mean_escape = escape_steers / escape_count
+            escape = mean_escape.normalize()
+
+            desired_escape = escape * self.maxspeed
+            escape_force = (desired_escape - velocity) * self.maxforce
+        
+        else:
+            escape_force = escape_steers
+
+        return escape_force
 
     # Method that calculates two vectors that are pointing in front of the boid. The first one's length is the view_distance and the other one's is half of the first
     def vision(self):
