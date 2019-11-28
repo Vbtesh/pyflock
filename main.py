@@ -5,6 +5,7 @@ from scripts.boid import Boid
 from scripts.predator import Predator
 from scripts.attractor import Attractor
 from scripts.interface import Slider
+from scripts.wall import Enclave
 
 def generate_vector():
     #return (8, randint(2, 360))
@@ -39,6 +40,9 @@ flock = [Boid(boid_scale, max_speed, boid_colors[randint(0, len(boid_colors)-1)]
 # Predator list initialisation
 predators = []
 
+# Enclave initialisation
+enclave = Enclave(dimensions, red)
+
 # Attractor initialisation
 attractor_num = 1
 attractors = [Attractor((235, 210, 135), (display_width//2, display_height//2))]
@@ -55,6 +59,7 @@ pygame.display.set_caption("Boids")
 clock = pygame.time.Clock()
 screen.fill(background_color)
 pygame.display.update()
+
 
 # Set Mouse Buttons Values
 LEFT = 1
@@ -108,6 +113,9 @@ while not game_exit:
     for a in attractors:
         #a.draw(screen)
         continue
+
+    # Draw walls
+    #enclave.draw(screen)
 
     # Update and draw boids
     for boid in flock:

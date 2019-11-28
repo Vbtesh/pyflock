@@ -38,13 +38,15 @@ class Boid(pygame.sprite.Sprite):
         self.maxspeed = max_speed
         self.maxforce = 0.02
         
-        # Vision and radius, unused for the moment
-        #self.vision()
+        # Vision and radius
+        self.view_distance = 75
+        self.vision()
         #self.radius = point_distance(self.rect.center, self.ahead2) * 50 # Will be half of the ahead2 distance, default is 25
 
 
     def draw(self, surface):
         pygame.draw.polygon(surface, self.color, self.boundaries)
+        #pygame.draw.line(surface, self.color, self.pos, self.ahead)
 
 
     def calcnewbounds(self):
@@ -79,13 +81,17 @@ class Boid(pygame.sprite.Sprite):
         # Fear if predator
         fear = self.escape(predators)
 
+        # Stay in Enclave
+        stay = self.stay_in_enclave()
+
         # Apply weights
         avoid = avoid * 1
-        seek = seek * 0.3
+        seek = seek * 0.4
         align = align * 0.8
-        fear = fear * 2
+        fear = fear * 1.6
+        stay = stay * 0.7
         
-        acceleration = avoid + seek + align + fear
+        acceleration = avoid + seek + align + fear + stay
         
         if acceleration.magnitude() > 0:
             self.velocity = self.velocity + acceleration
@@ -111,7 +117,7 @@ class Boid(pygame.sprite.Sprite):
         self.acceleration = Vector2()
 
         # Vision : defined as ahead and ahead 2
-        #self.vision()
+        self.vision()
 
 
     def calcnewpos(self, rect, vector):
@@ -133,7 +139,7 @@ class Boid(pygame.sprite.Sprite):
             #self.randomise_pos()
             #current_pos = Vector2(self.rect.center)
             return
-        
+
         velocity = self.velocity
 
         desired_velocity = (target_pos - current_pos).normalize() * self.maxspeed
@@ -323,17 +329,47 @@ class Boid(pygame.sprite.Sprite):
 
         return escape_force
 
+
     # Method that calculates two vectors that are pointing in front of the boid. The first one's length is the view_distance and the other one's is half of the first
     def vision(self):
 
-        view_distance = 100
-        velocity = Vector2()
-        velocity.from_polar(self.velocity)
-        dist_coef = view_dist_coef(velocity, view_distance)
+        velocity = self.velocity
+        dist_coef = view_dist_coef(velocity, self.view_distance)
 
         self.ahead = (self.rect.centerx + velocity[0]*dist_coef, self.rect.centery + velocity[1]*dist_coef)
         self.ahead2 = (self.rect.centerx + velocity[0]*dist_coef*0.5, self.rect.centery + velocity[1]*dist_coef*0.5) # Is always half of ahead.
 
+
+    def stay_in_enclave(self):
+
+        current_pos = self.pos
+        velocity = self.velocity
+
+        if self.ahead[0] > self.surface_dim[0] or self.ahead[0] < 0 or self.ahead[1] > self.surface_dim[1] or self.ahead[1] < 0:
+            if self.ahead[0] > self.surface_dim[0]:
+                danger = Vector2(self.surface_dim[0], self.ahead[1])
+                aim = danger - self.ahead
+            elif self.ahead[0] < 0:
+                danger = Vector2(0, self.ahead[1])
+                aim = danger - self.ahead
+            elif self.ahead[1] > self.surface_dim[1]:
+                danger = Vector2(self.ahead[0], self.surface_dim[1])
+                aim = danger - self.ahead
+            elif self.ahead[1] < 0:
+                danger = Vector2(self.ahead[0], 0)
+                aim = danger - self.ahead
+
+            distance = point_distance(current_pos, aim)
+            stay_steering = (aim) / distance
+            stay_steering = stay_steering.normalize()
+
+            desired_stay = stay_steering * self.maxspeed
+            stay_force = (desired_stay - velocity) * self.maxforce
+            return stay_force
+
+        else:
+            return Vector2()
+            
 
     def randomise_pos(self):
 
