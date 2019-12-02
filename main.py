@@ -69,7 +69,7 @@ game_exit = False
 
 while not game_exit:
 
-    clock.tick(30)
+    clock.tick(60)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -79,8 +79,8 @@ while not game_exit:
             flock.append(Boid(boid_scale, max_speed, boid_colors[randint(0, len(boid_colors)-1)], generate_vector(), dimensions, pos))
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == RIGHT:
             pos = pygame.mouse.get_pos()
-            predators.append(Predator(boid_scale*3, max_speed, predator_colors[randint(0, len(predator_colors)-1)], generate_vector(), dimensions, pos))
-
+            #predators.append(Predator(boid_scale*3, max_speed, predator_colors[randint(0, len(predator_colors)-1)], generate_vector(), dimensions, pos))
+            predators.append(Predator(boid_scale*3, max_speed, black, generate_vector(), dimensions, pos))
         #    for s in slides:
         #        if s.button_rect.collidepoint(pos):
         #            s.hit = True
